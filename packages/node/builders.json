@@ -10,6 +10,11 @@
       "implementation": "./src/builders/execute/execute.impl",
       "schema": "./src/builders/execute/schema.json",
       "description": "Execute a Node application"
+    },
+    "ts-node-dev": {
+      "implementation": "./src/builders/ts-node-dev/ts-node-dev.impl",
+      "schema": "./src/builders/ts-node-dev/schema.json",
+      "description": "Execute a Node application from TypeScript source files"
     }
   }
 }

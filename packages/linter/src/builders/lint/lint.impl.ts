@@ -3,30 +3,67 @@ import {
   BuilderOutput,
   createBuilder
 } from '@angular-devkit/architect';
+import { JsonObject } from '@angular-devkit/core';
+import { Logger } from '@angular-devkit/core/src/logger';
 import { from, Observable } from 'rxjs';
-import { concatMap } from 'rxjs/operators';
+import { concatMap, tap } from 'rxjs/operators';
 
-function run(options: any, context: BuilderContext): Observable<BuilderOutput> {
+type LinterFormat =
+  | 'checkStyle'
+  | 'codeFrame'
+  | 'filesList'
+  | 'json'
+  | 'junit'
+  | 'msbuild'
+  | 'pmd'
+  | 'prose'
+  | 'stylish'
+  | 'tap'
+  | 'verbose'
+  | 'vso';
+
+export interface LinterBuilderOptions extends JsonObject {
+  linter: string;
+  config?: string;
+  tsConfig?: string;
+  format?: LinterFormat;
+  exclude?: string[];
+  files?: string[];
+  fix?: boolean;
+}
+
+export function linterBuilderHandler(
+  options: LinterBuilderOptions,
+  context: BuilderContext
+): Observable<BuilderOutput> {
   if (options.linter === 'tslint') {
-    delete options.linter;
-    options.tslintConfig = options.config;
-    delete options.config;
+    const tslintOptions: any = { ...options, tslintConfig: options.config };
+    delete tslintOptions.linter;
+    delete tslintOptions.config;
     return from(
-      context.scheduleBuilder('@angular-devkit/build-angular:tslint', options, {
-        logger: patchedLogger(context)
+      context.scheduleBuilder(
+        '@angular-devkit/build-angular:tslint',
+        tslintOptions,
+        {
+          logger: context.logger as Logger
+        }
+      )
+    ).pipe(
+      tap(r => console.log(r)),
+      concatMap(r => {
+        return r.output;
       })
-    ).pipe(concatMap(r => r.output));
+    );
   }
 
   if (options.linter === 'eslint') {
-    delete options.linter;
-    options.eslintConfig = options.config;
-    delete options.config;
-    // Use whatever the default formatter is
-    delete options.format;
+    const eslintOptions: any = { ...options, eslintConfig: options.config };
+    delete eslintOptions.linter;
+    delete eslintOptions.config;
+    delete eslintOptions.format; // Use whatever the default formatter is
     return from(
-      context.scheduleBuilder('@angular-eslint/builder:lint', options, {
-        logger: patchedLogger(context)
+      context.scheduleBuilder('@angular-eslint/builder:lint', eslintOptions, {
+        logger: context.logger as Logger
       })
     ).pipe(concatMap(r => r.output));
   }
@@ -38,14 +75,4 @@ function run(options: any, context: BuilderContext): Observable<BuilderOutput> {
   );
 }
 
-// remove once https://github.com/angular/angular-cli/issues/15053 is fixed
-function patchedLogger(context: any): any {
-  const s = context.logger._subject.next;
-  context.logger._subject.next = (v: any) => {
-    v.message = v.message.replace('<???>', context.target.project);
-    return s.apply(context.logger._subject, [v]);
-  };
-  return context.logger;
-}
-
-export default createBuilder<any>(run);
+export default createBuilder<LinterBuilderOptions>(linterBuilderHandler);

@@ -1,0 +1,72 @@
+{
+  "$schema": "http://json-schema.org/schema",
+  "type": "object",
+  "title": "Schema for Executing NodeJS apps directly from TypeScript source files",
+  "description": "TS Node Dev execution options",
+  "properties": {
+    "main": {
+      "type": "string",
+      "description": "The name of the main entry-point file."
+    },
+    "tsConfig": {
+      "type": "string",
+      "description": "The name of the Typescript configuration file."
+    },
+    "preferTs": {
+      "type": "boolean",
+      "description": "for each .js file (that is not in node_modules) will try to check if corresponding .ts version exists and require it",
+      "default": false
+    },
+    "ignoreWatch": {
+      "type": "array",
+      "description": "files/folders to be ignored by node-dev",
+      "default": []
+    },
+    "debug": {
+      "type": "boolean",
+      "description": "Add additional debug output",
+      "default": false
+    },
+    "interval": {
+      "type": "number",
+      "description": "Polling interval (ms)"
+    },
+    "debounce": {
+      "type": "boolean",
+      "decription": "Debounce file change events (ms, non-polling mode)",
+      "default": false
+    },
+    "clear": {
+      "type": "boolean",
+      "description": "Will clear screen on restart",
+      "default": false
+    },
+    "watch": {
+      "type": "array",
+      "description": "Explicitly add files or folders to watch and restart on change",
+      "default": []
+    },
+    "inspect": {
+      "type": "string",
+      "enum": ["none", "inspect", "inspect-brk"],
+      "description": "Enable inspector agent",
+      "default": "inspect"
+    },
+    "host": {
+      "type": "string",
+      "default": "localhost",
+      "description": "The host to inspect the process on"
+    },
+    "port": {
+      "type": "number",
+      "default": 7777,
+      "description": "The port to inspect the process on. Setting port to 0 will assign random free ports to all forked processes."
+    },
+    "args": {
+      "type": "array",
+      "default": [],
+      "description": "Any extra arguments"
+    }
+  },
+  "required": ["tsConfig", "main"]
+}
